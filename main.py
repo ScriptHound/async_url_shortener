@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 app = FastAPI()
-HOST_URL = os.getenv("HOSTNAME")
+HOST_URL = os.getenv("SERVICE_HOSTNAME")
 REDIS_URL = os.getenv("REDIS_URL")
 
 
@@ -29,7 +29,6 @@ async def post_long_url(
     session: aioredis.Redis = Depends(session)
 ):
     short_url_string = get_random_string(10)
-    print(short_url_string)
     await session.set(short_url_string, url)
     return {"response": HOST_URL + short_url_string}
 

@@ -8,7 +8,7 @@ RUN apt-get -y dist-upgrade
 RUN apt-get -y install gcc make
 
 RUN apt-get -y clean
-COPY . /canalservice
+COPY . /url_shortener
 
 RUN pip3 install -r requirements.txt
 
