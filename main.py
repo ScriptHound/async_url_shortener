@@ -1,6 +1,6 @@
 import os
 import string
-from random import choice
+import random
 
 from fastapi import FastAPI, Depends
 from pydantic import AnyUrl
@@ -13,9 +13,8 @@ HOST_URL = os.getenv("HOSTNAME")
 REDIS_URL = os.getenv("REDIS_URL")
 
 
-def redis_session():
-    url = REDIS_URL
-    return aioredis.from_url(url)
+async def session():
+    return aioredis.from_url(REDIS_URL)
 
 
 def get_random_string(length):
@@ -27,13 +26,18 @@ def get_random_string(length):
 @app.post("/long_url")
 async def post_long_url(
     url: AnyUrl,
-    session: aioredis.Redis = Depends(redis_session)
+    session: aioredis.Redis = Depends(session)
 ):
     short_url_string = get_random_string(10)
+    print(short_url_string)
     await session.set(short_url_string, url)
     return {"response": HOST_URL + short_url_string}
 
 
-@app.get("/test")
-async def test():
-    return {"Okay": "200"}
+@app.get("/resolved_url/{url_id}")
+async def get_resolved_url(
+    url_id: str,
+    session: aioredis.Redis = Depends(session)
+):
+    resolved_string = await session.get(url_id)
+    return {"resolved": resolved_string}
