@@ -7,6 +7,14 @@ services:
       - "8000:8000"
     networks:
       - my_network
+    restart: always
+    depends_on:
+      - redis-cluster
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
   
   redis-cluster:
     image: docker.io/bitnami/redis-cluster:7.0

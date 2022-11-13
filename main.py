@@ -1,4 +1,5 @@
 import os
+import csv
 import string
 import random
 
@@ -26,6 +27,15 @@ def get_random_string(length):
     letters = string.ascii_lowercase
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
+
+
+@app.on_event('startup')
+async def startup_event():
+    redis_session = await session()
+    with open('redis_data_dump.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            redis_session.set(row['key'], row['value'])
 
 
 @app.post("/long_url")
