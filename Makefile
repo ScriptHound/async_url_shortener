@@ -11,7 +11,7 @@ compose_stop:
 	@docker-compose down -v --remove-orphans
 
 post_performance:
-	@locust -f performance_test/post_requests_perf.py -H http://localhost:8000
+	@locust -f performance_test/post_requests_perf.py -H http://localhost:80
 
 get_performance:
-	@locust -f performance_test/get_requests_perf.py -H http://localhost:8000
+	@locust -f performance_test/get_requests_perf.py -H http://localhost:80

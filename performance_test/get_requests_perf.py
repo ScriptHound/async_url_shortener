@@ -16,6 +16,6 @@ class MyUserPerformanceTest(HttpUser):
     def get_url(self):
         for _ in range(250):
             random_key = choice(self.test_data)
-            url = f'/resolved_url/{random_key}/'
+            url = f'/resolved_url/{random_key}'
             response = self.client.get(url)
     

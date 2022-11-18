@@ -1,12 +1,36 @@
 version: '3.8'
 
 services:
-  backend:
-    build: .
+
+  frontend-nginx:
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    command: [nginx-debug, '-g', 'daemon off;']
+    depends_on:
+      - backend-1
+      - backend-2
+    restart: always
     ports:
-      - "8000:8000"
-    networks:
-      - my_network
+      - "80:80"
+
+  backend-1:
+    build: .
+    expose:
+      - 8000
+    restart: always
+    depends_on:
+      - redis-cluster
+      - redis-node-0
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+      - redis-node-4
+  
+  backend-2:
+    build: .
+    expose:
+      - 8000
     restart: always
     depends_on:
       - redis-cluster
@@ -27,63 +51,51 @@ services:
       - redis-node-3
       - redis-node-4
     environment:
-      - 'REDIS_PASSWORD=bitnami'
-      - 'REDISCLI_AUTH=bitnami'
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
+      - 'REDISCLI_AUTH=${REDISCLI_AUTH}'
       - 'REDIS_CLUSTER_REPLICAS=1'
       - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4'
       - 'REDIS_CLUSTER_CREATOR=yes'
-    networks:
-      - my_network
-  
+
   redis-node-0:
     image: docker.io/bitnami/redis-cluster:7.0
     volumes:
       - redis-cluster_data-0:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
       - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4'
-    networks:
-      - my_network
 
   redis-node-1:
     image: docker.io/bitnami/redis-cluster:7.0
     volumes:
       - redis-cluster_data-1:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
       - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4'
-    networks:
-      - my_network
 
   redis-node-2:
     image: docker.io/bitnami/redis-cluster:7.0
     volumes:
       - redis-cluster_data-2:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
       - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4'
-    networks:
-      - my_network
 
   redis-node-3:
     image: docker.io/bitnami/redis-cluster:7.0
     volumes:
       - redis-cluster_data-3:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
       - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4'
-    networks:
-      - my_network
-  
+
   redis-node-4:
     image: docker.io/bitnami/redis-cluster:7.0
     volumes:
       - redis-cluster_data-4:/bitnami/redis/data
     environment:
-      - 'REDIS_PASSWORD=bitnami'
+      - 'REDIS_PASSWORD=${REDIS_PASSWORD}'
       - 'REDIS_NODES=redis-cluster redis-node-0 redis-node-1 redis-node-2 redis-node-3 redis-node-4'
-    networks:
-      - my_network
 
 volumes:
   redis-cluster_data-0:
@@ -98,6 +110,3 @@ volumes:
     driver: local
   redis-cluster_head:
     driver: local
-
-networks:
-  my_network:
