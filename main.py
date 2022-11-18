@@ -1,10 +1,11 @@
 import os
+import csv
 import string
 import random
 
+from redis import RedisCluster
 from fastapi import FastAPI, Depends
 from pydantic import AnyUrl
-import aioredis
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -14,7 +15,12 @@ REDIS_URL = os.getenv("REDIS_URL")
 
 
 async def session():
-    return aioredis.from_url(REDIS_URL)
+    rc = RedisCluster(
+        host='redis-node-0',
+        port=6379,
+        auth='bitnami',
+        password='bitnami')
+    return rc
 
 
 def get_random_string(length):
@@ -23,20 +29,29 @@ def get_random_string(length):
     return result_str
 
 
+@app.on_event('startup')
+async def startup_event():
+    redis_session = await session()
+    with open('redis_data_dump.csv', 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            redis_session.set(row['key'], row['value'])
+
+
 @app.post("/long_url")
 async def post_long_url(
     url: AnyUrl,
-    session: aioredis.Redis = Depends(session)
+    session: RedisCluster = Depends(session)
 ):
     short_url_string = get_random_string(10)
-    await session.set(short_url_string, url)
+    session.set(short_url_string, url)
     return {"response": HOST_URL + short_url_string}
 
 
 @app.get("/resolved_url/{url_id}")
 async def get_resolved_url(
     url_id: str,
-    session: aioredis.Redis = Depends(session)
+    session: RedisCluster = Depends(session)
 ):
-    resolved_string = await session.get(url_id)
+    resolved_string = session.get(url_id)
     return {"resolved": resolved_string}

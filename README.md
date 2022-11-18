@@ -14,12 +14,18 @@ REDIS_URL={your redis instance, if not any just use "redis://redis"}
 SERVICE_HOSTNAME={your hostname, for example http://localhost}
 
 ```
-docker-compose up --build
+make compose_start
 ```
 
 # Performance tesing
+for HTTP GET testing
 ```
-make performance
+make get_performance
+```
+
+for HTTP POST testing
+```
+make post_performance
 ```
 
 Then just go to http://0.0.0.0:8089 to start testing
