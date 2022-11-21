@@ -1,5 +1,5 @@
 fastapi
-aioredis
+redis
 python-dotenv
 pytest
 aiohttp
