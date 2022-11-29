@@ -5,7 +5,7 @@ import csv
 
 from fastapi import FastAPI, Depends
 from pydantic import AnyUrl
-from redis import Redis
+from redis.asyncio import Redis
 from dotenv import load_dotenv
 
 load_dotenv(".env")
@@ -18,7 +18,10 @@ async def session():
     rc = Redis(
         host='redis',
         port=6379)
-    return rc
+    try:
+        yield rc
+    finally:
+        await rc.close()
 
 
 def get_random_string(length):
@@ -29,11 +32,11 @@ def get_random_string(length):
 
 @app.on_event('startup')
 async def startup_event():
-    redis_session = await session()
+    redis_session = await (session().__anext__())
     with open('redis_data_dump.csv', 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            redis_session.set(row['key'], row['value'])
+            await redis_session.set(row['key'], row['value'])
 
 
 @app.post("/long_url")
@@ -42,7 +45,7 @@ async def post_long_url(
     session: Redis = Depends(session)
 ):
     short_url_string = get_random_string(10)
-    session.set(short_url_string, url)
+    await session.set(short_url_string, url)
     return {"response": HOST_URL + short_url_string}
 
 
@@ -51,5 +54,5 @@ async def get_resolved_url(
     url_id: str,
     session: Redis = Depends(session)
 ):
-    resolved_string = session.get(url_id)
+    resolved_string = await session.get(url_id)
     return {"resolved": resolved_string}
